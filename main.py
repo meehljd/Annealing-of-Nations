@@ -3,13 +3,19 @@ import math
 import json
 import random
 import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import geopandas as gpd
 
 get_flight_updates = False
+do_run_annealing = False
 
-flight_file = 'flights.json'
+flight_file = r'.\data\flights.json'
+geo_file = r'.\data\airport_geo.json'
+path_file = r'.\data\best_path.json'
 
 if get_flight_updates:
-    flights = recheck_flights.recheck_flights(flight_file)
+    flights = recheck_flights.recheck_flights(flight_file, geo_file)
 else:
     with open(flight_file) as json_file:
         flights = json.load(json_file)
@@ -68,27 +74,72 @@ def acceptance_probability(old_cost, new_cost, k):
         p = 1.0
     return p
 
-
-path = get_valid_path(path)
-cost = calculate_path_cost(path)
-
-temperature_schedule = np.logspace(0, 4, num=100000)[::-1]
-costs = []
-for i, k in enumerate(temperature_schedule):
-    new_path = get_valid_path(path)
+def run_annealing(path):
+    path = get_valid_path(path)
     cost = calculate_path_cost(path)
-    new_cost = calculate_path_cost(new_path)
-    p = acceptance_probability(cost, new_cost, k)
-    if random.random() < p:
-        path = new_path
-    costs.append(cost)
-    if i % 100 == 0:
-        print(i/len(temperature_schedule), cost, new_cost, p, path == new_path)
+    best_cost = cost
+    len_temp_sch = 1e6
 
-import matplotlib.pyplot as plt
+    temperature_schedule = np.logspace(0.5, 3.5, num=len_temp_sch)[::-1]
+    costs = []
+    for i, k in enumerate(temperature_schedule):
+        new_path = get_valid_path(path)
+        cost = calculate_path_cost(path)
+        new_cost = calculate_path_cost(new_path)
+        p = acceptance_probability(cost, new_cost, k)
+        if random.random() < p:
+            path = new_path
+        if new_cost < best_cost:
+            best_path = path
+            best_cost = new_cost
+        costs.append(cost)
+        if i % 1000 == 0:
+            print(i/len_temp_sch, cost, new_cost, k, p, path == new_path, best_cost)
 
-plt.plot(costs)
-plt.savefig('costs.png')
+    visualize_cost(costs, temperature_schedule)
+
+    return best_path, best_cost
+
+def visualize_cost(costs, temperature_schedule):
+    #TODO: update to include plt.animation() of path
+    plt.plot(costs)
+    plt.xlabel('iterations')
+    plt.ylabel('cost (USD)')
+    plt.title('Cost of Trip')
+    plt.savefig(r'.\images\costs.png')
+    plt.show()
+
+    plt.plot(temperature_schedule)
+    plt.xlabel('iterations')
+    plt.ylabel('temperature')
+    plt.title('Annealing Schedule')
+    plt.savefig(r'.\images\schedule.png')
+    plt.show()
+
+if do_run_annealing:
+    best_path, best_cost = run_annealing(path)
+    with open(path_file, 'w') as outfile:
+        json.dump(best_path, outfile, indent=2)
+else:
+    with open(path_file) as json_file:
+        best_path = json.load(json_file)
+    best_cost = calculate_path_cost(best_path)
+
+print(f'For ${best_cost}, use {best_path}')
+
+with open(geo_file) as json_file:
+    airport_data = json.load(json_file)
+airport_data = pd.DataFrame(airport_data)
+gdf = gpd.GeoDataFrame(
+    airport_data, geometry=gpd.points_from_xy(airport_data['longitude'], airport_data['latitude']))
+print(gdf)
+print(airport_data)
+
+world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
+world.head()
+
+with plt.style.context(("seaborn", "ggplot")):
+    ## Plot world
+    world.plot(figsize=(18,10), edgecolor="grey", color="white");
+
 plt.show()
-
-print(path)

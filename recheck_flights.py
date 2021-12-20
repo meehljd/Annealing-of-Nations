@@ -3,19 +3,23 @@ import json
 from datetime import datetime, timedelta
 from utils.data_manager import DataManager
 from utils.flight_search import FlightSearch
-from utils.notification_manager import NotificationManager
 
 def save_json(object, flight_file):
-    json_object = json.dumps(object)
     with open(flight_file, 'w') as outfile:
-        outfile.write(json_object)
+        json.dump(object, outfile, indent=2)
 
-def recheck_flights(flight_file):
+def recheck_flights(flight_file, geo_file):
     data_manager = DataManager()
     flight_search = FlightSearch()
-    notification_manager = NotificationManager()
 
     sheet_data = data_manager.get_destination_data()
+
+    geo_data = {"country": [data["country"] for data in sheet_data],
+                "city": [data["city"] for data in sheet_data],
+                "airport": [data["iataCode"] for data in sheet_data],
+                "latitude": [data["lat"] for data in sheet_data],
+                "longitude": [data["long"] for data in sheet_data]}
+    save_json(geo_data, geo_file)
 
     destinations = {
         data["iataCode"]: {
@@ -44,5 +48,6 @@ def recheck_flights(flight_file):
             origins[origination_code][destination_code] = flight.price
         print(origins)
 
-    save_json(object, flight_file)
+    save_json(origins, flight_file)
+    print(f'saved to {flight_file}')
     return origins
