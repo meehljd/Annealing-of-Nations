@@ -138,13 +138,23 @@ print(airport_data)
 world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 world.head()
 
+path_df = pd.DataFrame()
+path_df['orig_ap'] = best_path
+path_df['dest_ap'] = best_path[1:] + [best_path[-1]]
+path_df = pd.merge(path_df, airport_data, left_on='orig_ap', right_on='airport', suffixes=('', '_orig'))
+path_df = pd.merge(path_df, airport_data, left_on='dest_ap', right_on='airport', suffixes=('', '_dest'))
+print(path_df)
+
+#TODO merge origin_ap; dest_ap to airport_data
+
 #TODO: Make df of path orig and dest lat & long.
 # https://coderzcolumn.com/tutorials/data-science/how-to-create-connection-map-chart-in-python-jupyter-notebook-plotly-and-geopandas
 with plt.style.context(("seaborn", "ggplot")):
     ## Plot world
     world.plot(figsize=(18,10), edgecolor="grey", color="white");
 
-    for lat, long in zip(gdf["latitude"], gdf["longitude"]):
-        #plt.plot([slon , dlon], [slat, dlat], linewidth=num_flights/100, color="red", alpha=0.5)
-        plt.scatter(long, lat, color="blue", alpha=0.5)
+    for lat_o, long_o, lat_d, long_d in zip(path_df["latitude_orig"], path_df["longitude_orig"],
+                                            path_df["latitude_dest"], path_df["longitude_dest"]):
+        plt.plot([long_o , long_d], [lat_o, lat_d], color="red", alpha=0.5)
+        plt.scatter(long_o, lat_o, color="blue", alpha=0.5)
 plt.show()
