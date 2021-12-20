@@ -138,8 +138,13 @@ print(airport_data)
 world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 world.head()
 
+#TODO: Make df of path orig and dest lat & long.
+# https://coderzcolumn.com/tutorials/data-science/how-to-create-connection-map-chart-in-python-jupyter-notebook-plotly-and-geopandas
 with plt.style.context(("seaborn", "ggplot")):
     ## Plot world
     world.plot(figsize=(18,10), edgecolor="grey", color="white");
 
+    for lat, long in zip(gdf["latitude"], gdf["longitude"]):
+        #plt.plot([slon , dlon], [slat, dlat], linewidth=num_flights/100, color="red", alpha=0.5)
+        plt.scatter(long, lat, color="blue", alpha=0.5)
 plt.show()
