@@ -132,19 +132,16 @@ with open(geo_file) as json_file:
 airport_data = pd.DataFrame(airport_data)
 gdf = gpd.GeoDataFrame(
     airport_data, geometry=gpd.points_from_xy(airport_data['longitude'], airport_data['latitude']))
-print(gdf)
-print(airport_data)
 
 world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
-world.head()
 
 path_df = pd.DataFrame()
 path_df['orig_ap'] = best_path
 path_df['dest_ap'] = best_path[1:] + [best_path[-1]]
-path_df = pd.merge(path_df, airport_data, left_on='orig_ap', right_on='airport', suffixes=('', '_orig'))
-path_df = pd.merge(path_df, airport_data, left_on='dest_ap', right_on='airport', suffixes=('', '_dest'))
+path_df = pd.merge(path_df, airport_data, left_on='orig_ap', right_on='airport')
+path_df = pd.merge(path_df, airport_data, left_on='dest_ap', right_on='airport', suffixes=('_orig', '_dest'))
 print(path_df)
-
+print(path_df.columns)
 #TODO merge origin_ap; dest_ap to airport_data
 
 #TODO: Make df of path orig and dest lat & long.
@@ -157,4 +154,5 @@ with plt.style.context(("seaborn", "ggplot")):
                                             path_df["latitude_dest"], path_df["longitude_dest"]):
         plt.plot([long_o , long_d], [lat_o, lat_d], color="red", alpha=0.5)
         plt.scatter(long_o, lat_o, color="blue", alpha=0.5)
+plt.savefig(r'.\images\best_path.png')
 plt.show()
