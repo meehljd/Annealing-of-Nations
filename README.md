@@ -1,13 +1,25 @@
 # Annealing-of-Nations
 Use Simulated Annealing to solve Taveling Salesperson Problem.  The goal is to find a near-optimum multi-city flight route to complete a tour of the countries listed in the They Might Be Giants song "Alphabet of Nations".
 
+## Introduction
+
 **Motivation:** Fun integration of API skills and algorithm skills. 
 
 nations = [Algeria, Bulgaria, Cambodia, Dominica, Egypt, France, Gambia, Hungary, Iran, Japan, Kazakhstan, Libya Mongolia, Norway, Oman, Pakistan, Qatar, Russia, Suriname, Turkey, Uruguay, Vietnam, West Xylophone*, Yemen, Zimbabwe]
 
 *Use Xylokeriza, Greece.
 
-**Video:** https://www.youtube.com/watch?v=drgrvDypOjA
+**Music Video:** https://www.youtube.com/watch?v=drgrvDypOjA
+
+## Results
+
+Here is a map of the optimized flight routes:
+
+![Map](images/best_path.png)
+
+Here is the total trip cost per iteration.  As you can see, initial the total cost varied between $9k-$15k, with it settling towards $6k at the end.
+
+![Costs](images/costs.png)
 
 ## Solution Stack
 
@@ -26,7 +38,3 @@ nations = [Algeria, Bulgaria, Cambodia, Dominica, Egypt, France, Gambia, Hungary
 
 **Visualization:** 
 - Visual of flight path on map, total cost of optimum rounte.  May include cost of least optimum route as well.
-
-## TODO
-
-Everything...
